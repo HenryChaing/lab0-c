@@ -140,7 +140,6 @@ bool q_delete_dup(struct list_head *head)
 
     while (pt != head) {
         element_t *node = container_of(pt, element_t, list);
-        printf("1");
         for (size_t i = 0; i < str_mem_count; i++) {
             if (strcmp(str_mem[i], node->value) == 0) {
                 pt->next->prev = pt->prev;
@@ -176,7 +175,6 @@ void q_swap(struct list_head *head)
     list_head *last = head->next;
 
     while (front != head && last != head) {
-        printf("(%p,%p,%p)\n", front, last, head);
         (last)->prev->next = front;
         (front)->next->prev = last;
         (last)->next = (front)->next;
@@ -184,11 +182,8 @@ void q_swap(struct list_head *head)
         (front)->next = last;
         (last)->prev = front;
 
-        printf("end");
         front = ((front)->next->next->next);
-        printf("end");
         last = ((last)->next);
-        printf("end");
     }
 
     // https://leetcode.com/problems/swap-nodes-in-pairs/
