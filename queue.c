@@ -20,10 +20,14 @@ static bool compare(struct list_head *a, struct list_head *b);
 /* Create an empty queue */
 list_head *q_new()
 {
-    list_head *temp = (list_head *) malloc(sizeof(list_head));
-    temp->next = temp;
-    temp->prev = temp;
-    return temp;
+    list_head *head = (list_head *) malloc(sizeof(list_head));
+    if(!head){
+        return NULL;
+    }
+    head->next = head;
+    head->prev = head;
+
+    return head;
 }
 
 /* Free all storage used by queue */
