@@ -21,7 +21,7 @@ static bool compare(struct list_head *a, struct list_head *b);
 list_head *q_new()
 {
     list_head *head = (list_head *) malloc(sizeof(list_head));
-    if(!head){
+    if (!head) {
         return NULL;
     }
     head->next = head;
@@ -33,6 +33,9 @@ list_head *q_new()
 /* Free all storage used by queue */
 void q_free(list_head *l)
 {
+    if (!l) {
+        return;
+    }
     list_head *pt = l->next;
     while (pt != l) {
         element_t *node = container_of(pt, element_t, list);
