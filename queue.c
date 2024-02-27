@@ -155,6 +155,10 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 /* Return number of elements in queue */
 int q_size(struct list_head *head)
 {
+    if (!head || head->next == head) {
+        return 0;
+    }
+
     int count = 0;
     list_head *pt = head;
     while (pt->next != head) {
