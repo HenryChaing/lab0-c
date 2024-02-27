@@ -173,7 +173,7 @@ int q_size(struct list_head *head)
 bool q_delete_mid(struct list_head *head)
 {
     int length = q_size(head);
-    int mid_index = length / 2;
+    int mid_index = (length + 1) / 2;
     list_head *pt = head;
 
     for (size_t i = 0; i < mid_index; i++) {
