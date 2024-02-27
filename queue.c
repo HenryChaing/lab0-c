@@ -135,9 +135,20 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 /* Remove an element from tail of queue */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
+    if (q_size(head) == 0 || !sp) {
+        return NULL;
+    }
+
     element_t *return_element = container_of(head->prev, element_t, list);
     head->prev->prev->next = head;
     head->prev = head->prev->prev;
+    size_t i;
+
+    for (i = 0; i < strlen(return_element->value) && i < bufsize - 1; i++) {
+        *(sp + i) = *(return_element->value + i);
+    }
+    *(sp + i) = '\0';
+
     return return_element;
 }
 
