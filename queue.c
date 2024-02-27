@@ -308,6 +308,10 @@ void q_reverseK(struct list_head *head, int k)
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
+    if (q_size(head) == 0 || q_size(head) == 1) {
+        return;
+    }
+
     struct list_head *list = head->next, *pending = NULL;
     size_t count = 0; /* Count of pending */
 
