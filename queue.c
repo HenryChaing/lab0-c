@@ -49,19 +49,19 @@ void q_free(list_head *l)
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
-    if(!head){
+    if (!head) {
         return false;
     }
-    
+
     element_t *new_node = (element_t *) malloc(sizeof(element_t));
 
-    if(!new_node){
+    if (!new_node) {
         return false;
     }
-    
-    char *str_copy = (char *) malloc(strlen(s)+1);
 
-    if(!str_copy){
+    char *str_copy = (char *) malloc(strlen(s) + 1);
+
+    if (!str_copy) {
         free(new_node);
         return false;
     }
@@ -82,12 +82,28 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (!head) {
+        return false;
+    }
+
     element_t *new_node = (element_t *) malloc(sizeof(element_t));
-    char *str_copy = (char *) malloc(strlen(s));
+
+    if (!new_node) {
+        return false;
+    }
+
+    char *str_copy = (char *) malloc(strlen(s) + 1);
+
+    if (!str_copy) {
+        free(new_node);
+        return false;
+    }
+
     int i;
     for (i = 0; i < strlen(s); i++) {
         *(str_copy + i) = *(s + i);
     }
+    *(str_copy + i) = '\0';
     new_node->value = str_copy;
     new_node->list.next = head;
     new_node->list.prev = head->prev;
