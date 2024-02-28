@@ -11,6 +11,7 @@
  */
 
 typedef struct list_head list_head;
+list_head *my_merge(list_head *a, list_head *b, bool descend);
 static list_head *merge(struct list_head *a, struct list_head *b);
 static void merge_final(struct list_head *head,
                         struct list_head *a,
@@ -442,8 +443,36 @@ int q_descend(struct list_head *head)
  * order */
 int q_merge(struct list_head *head, bool descend)
 {
+    list_head *q = container_of(head->next, queue_contex_t, chain)->q;
+    list_head *chain_context = head->next->next;
+
+    while (chain_context != head) {
+        list_head *merge_list =
+            container_of(chain_context, queue_contex_t, chain)->q;
+        q = my_merge(q, merge_list, descend);
+        chain_context = chain_context->next;
+    }
     // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    return q_size(q);
+}
+
+list_head *my_merge(list_head *a, list_head *b, bool descend)
+{
+    if (q_size(a) == 0) {
+        return b;
+    } else if (q_size(b) == 0) {
+        return a;
+    }
+
+    a->prev->next = b->next;
+    b->next->prev = a->prev;
+    a->prev = b->prev;
+    b->prev->next = a;
+    b->prev = b;
+    b->next = b;
+
+    q_sort(a, descend);
+    return a;
 }
 
 
