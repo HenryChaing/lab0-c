@@ -423,6 +423,9 @@ int q_descend(struct list_head *head)
             if (strcmp(last_node->value, front_node->value) < 0) {
                 last->prev->next = last->next;
                 last->next->prev = last->prev;
+                last = last->prev;
+                free(last_node->value);
+                free(last_node);
                 break;
             }
             front = front->next;
