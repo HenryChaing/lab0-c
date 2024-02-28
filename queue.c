@@ -199,42 +199,40 @@ bool q_delete_mid(struct list_head *head)
 /* Delete all nodes that have duplicate string */
 bool q_delete_dup(struct list_head *head)
 {
-    int str_mem_count = 0;
-    int delete_sign = 0;
-    char **str_mem = malloc(q_size(head) * sizeof(char *));
-    list_head *pt = head->next;
-
-    for (size_t i = 0; i < q_size(head); i++) {
-        str_mem[i] = (char *) malloc(100 * sizeof(char));
+    if (!head) {
+        return false;
     }
-
-    while (pt != head) {
-        element_t *node = container_of(pt, element_t, list);
-        for (size_t i = 0; i < str_mem_count; i++) {
-            if (strcmp(str_mem[i], node->value) == 0) {
-                pt->next->prev = pt->prev;
-                pt->prev->next = pt->next;
-                pt = pt->next;
-                delete_sign = 1;
+    list_head *last = head->next;
+    list_head *front = last->next;
+    bool delete = false;
+    while (last != head) {
+        element_t *last_node = container_of(last, element_t, list);
+        while (front != head) {
+            element_t *front_node = container_of(front, element_t, list);
+            if (strcmp(last_node->value, front_node->value) == 0) {
+                front->prev->next = front->next;
+                front->next->prev = front->prev;
+                front = front->next;
+                free(front_node->value);
+                free(front_node);
+                delete = true;
+                continue;
             }
+            front = front->next;
         }
-
-        if (delete_sign == 1) {
-            delete_sign = 0;
-            free(node->value);
-            free(node);
-        } else {
-            strncpy(str_mem[str_mem_count++], node->value, 100);
-            pt = pt->next;
+        if (delete) {
+            last->prev->next = last->next;
+            last->next->prev = last->prev;
+            last = last->next;
+            front = last->next;
+            free(last_node->value);
+            free(last_node);
+            delete = false;
+            continue;
         }
+        last = last->next;
+        front = last->next;
     }
-
-    for (size_t i = 0; i < q_size(head); i++) {
-        free(str_mem[i]);
-    }
-    free(str_mem);
-
-    // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
     return true;
 }
 
