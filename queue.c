@@ -127,10 +127,12 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     element_t *return_element = container_of(head->next, element_t, list);
     head->next->next->prev = head;
     head->next = head->next->next;
-    size_t i;
+    char *value = return_element->value;
+    int s_length = strlen(value);
 
-    for (i = 0; i < strlen(return_element->value) && i < bufsize - 1; i++) {
-        *(sp + i) = *(return_element->value + i);
+    size_t i;
+    for (i = 0; i < s_length && i < bufsize - 1; i++) {
+        *(sp + i) = *(value + i);
     }
     *(sp + i) = '\0';
 
@@ -147,10 +149,12 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     element_t *return_element = container_of(head->prev, element_t, list);
     head->prev->prev->next = head;
     head->prev = head->prev->prev;
-    size_t i;
+    char *value = return_element->value;
+    int s_length = strlen(value);
 
-    for (i = 0; i < strlen(return_element->value) && i < bufsize - 1; i++) {
-        *(sp + i) = *(return_element->value + i);
+    size_t i;
+    for (i = 0; i < s_length && i < bufsize - 1; i++) {
+        *(sp + i) = *(value + i);
     }
     *(sp + i) = '\0';
 
