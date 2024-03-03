@@ -50,6 +50,8 @@ void q_free(list_head *l)
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    int s_length = strlen(s);
+
     if (!head) {
         return false;
     }
@@ -60,7 +62,7 @@ bool q_insert_head(struct list_head *head, char *s)
         return false;
     }
 
-    char *str_copy = (char *) malloc(strlen(s) + 1);
+    char *str_copy = (char *) malloc(s_length + 1);
 
     if (!str_copy) {
         free(new_node);
@@ -68,7 +70,7 @@ bool q_insert_head(struct list_head *head, char *s)
     }
 
     int i;
-    for (i = 0; i < strlen(s); i++) {
+    for (i = 0; i < s_length; i++) {
         *(str_copy + i) = *(s + i);
     }
     *(str_copy + i) = '\0';
@@ -83,6 +85,8 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    int s_length = strlen(s);
+
     if (!head) {
         return false;
     }
@@ -93,7 +97,7 @@ bool q_insert_tail(struct list_head *head, char *s)
         return false;
     }
 
-    char *str_copy = (char *) malloc(strlen(s) + 1);
+    char *str_copy = (char *) malloc(s_length + 1);
 
     if (!str_copy) {
         free(new_node);
@@ -101,7 +105,7 @@ bool q_insert_tail(struct list_head *head, char *s)
     }
 
     int i;
-    for (i = 0; i < strlen(s); i++) {
+    for (i = 0; i < s_length; i++) {
         *(str_copy + i) = *(s + i);
     }
     *(str_copy + i) = '\0';
