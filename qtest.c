@@ -875,6 +875,16 @@ static bool do_merge(int argc, char *argv[])
     return ok && !error_check();
 }
 
+static bool do_shuffle(int argc, char *argv[])
+{
+    bool ok = true;
+    if (exception_setup(true))
+        ok = q_shuffle(current->q);
+
+    q_show(3);
+    return ok && !error_check();
+}
+
 static bool is_circular()
 {
     struct list_head *cur = current->q->next;
@@ -1052,6 +1062,8 @@ static void console_init()
                 "");
     ADD_COMMAND(reverseK, "Reverse the nodes of the queue 'K' at a time",
                 "[K]");
+    ADD_COMMAND(shuffle, "Use Fisher–Yates shuffle algo. shuffle the queue !!",
+                "");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",

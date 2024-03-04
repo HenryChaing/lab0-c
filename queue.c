@@ -447,6 +447,53 @@ int q_descend(struct list_head *head)
     return q_size(head);
 }
 
+bool q_shuffle(struct list_head *head)
+{
+    list_head *node_i;
+    list_head *node_j;
+    list_head *nodei_prev, *nodej_prev;
+    int size = q_size(head);
+
+    for (int i = size; i > 1; i--) {
+        int j = rand() % (i) + 1;
+
+        node_i = head;
+        node_j = head;
+
+        for (size_t inner_i = 0; inner_i < i; inner_i++) {
+            node_i = node_i->next;
+        }
+
+        for (size_t inner_i = 0; inner_i < j; inner_i++) {
+            node_j = node_j->next;
+        }
+
+        int distance = i - j;
+
+        if (distance == 0) {
+        } else if (distance == 1) {
+            node_j->prev->next = node_i;
+            node_i->next->prev = node_j;
+            node_j->next = node_i->next;
+            node_i->prev = node_j->prev;
+            node_i->next = node_j;
+            node_j->prev = node_i;
+
+        } else {
+            nodei_prev = node_i->prev;
+            nodej_prev = node_j->prev;
+            node_i->prev->next = node_i->next;
+            node_i->next->prev = node_i->prev;
+            node_j->prev->next = node_j->next;
+            node_j->next->prev = node_j->prev;
+            list_add(node_i, nodej_prev);
+            list_add(node_j, nodei_prev);
+        }
+    }
+
+    return true;
+}
+
 /* Merge all the queues into one sorted queue, which is in ascending/descending
  * order */
 int q_merge(struct list_head *head, bool descend)
