@@ -579,6 +579,34 @@ static bool do_size(int argc, char *argv[])
     return ok && !error_check();
 }
 
+void q_perf(void (*sort)(struct list_head *head, bool descend),
+            struct list_head *head,
+            bool descend)
+{
+    char s[100];
+    for (int i = 0; i < 10000; i++) {
+        char randstr_buf[MAX_RANDSTR_LEN];
+        fill_rand_string(randstr_buf, sizeof(randstr_buf));
+        q_insert_head(head, randstr_buf);
+    }
+
+    sort(head, descend);
+    q_swap(head);
+    /* test best case
+     *
+     *struct list_head *pt = head;
+     *for (int i = 0; i < 5000; i++) {
+     *    pt = pt->next;
+     *}
+     *q_insert_head(pt, "AAA");
+     */
+    sort(head, descend);
+
+    for (int i = 0; i < 10000; i++) {
+        q_remove_head(head, s, 100);
+    }
+}
+
 bool do_sort(int argc, char *argv[])
 {
     if (argc != 1) {
@@ -598,8 +626,10 @@ bool do_sort(int argc, char *argv[])
     error_check();
 
     set_noallocate_mode(true);
-    if (current && exception_setup(true))
+    if (current && exception_setup(true)) {
+        // q_perf(q_sort,current->q, descend);
         q_sort(current->q, descend);
+    }
     exception_cancel();
     set_noallocate_mode(false);
 
@@ -628,6 +658,59 @@ bool do_sort(int argc, char *argv[])
     q_show(3);
     return ok && !error_check();
 }
+
+bool do_timsort(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    int cnt = 0;
+    if (!current || !current->q)
+        report(3, "Warning: Calling sort on null queue");
+    else
+        cnt = q_size(current->q);
+    error_check();
+
+    if (cnt < 2)
+        report(3, "Warning: Calling sort on single node");
+    error_check();
+
+    set_noallocate_mode(true);
+    if (current && exception_setup(true)) {
+        // q_perf(q_timsort, current->q, descend);
+        q_timsort(current->q, descend);
+    }
+    exception_cancel();
+    set_noallocate_mode(false);
+
+    bool ok = true;
+    if (current && current->size) {
+        for (struct list_head *cur_l = current->q->next;
+             cur_l != current->q && --cnt; cur_l = cur_l->next) {
+            /* Ensure each element in ascending/descending order */
+            element_t *item, *next_item;
+            item = list_entry(cur_l, element_t, list);
+            next_item = list_entry(cur_l->next, element_t, list);
+            if (!descend && strcmp(item->value, next_item->value) > 0) {
+                report(1, "ERROR: Not sorted in ascending order");
+                ok = false;
+                break;
+            }
+
+            if (descend && strcmp(item->value, next_item->value) < 0) {
+                report(1, "ERROR: Not sorted in descending order");
+                ok = false;
+                break;
+            }
+        }
+    }
+
+    q_show(3);
+    return ok && !error_check();
+}
+
 
 static bool do_dm(int argc, char *argv[])
 {
@@ -1046,6 +1129,7 @@ static void console_init()
         "[str]");
     ADD_COMMAND(reverse, "Reverse queue", "");
     ADD_COMMAND(sort, "Sort queue in ascending/descening order", "");
+    ADD_COMMAND(timsort, "Sort queue in ascending/descening order", "");
     ADD_COMMAND(size, "Compute queue size n times (default: n == 1)", "[n]");
     ADD_COMMAND(show, "Show queue contents", "");
     ADD_COMMAND(dm, "Delete middle node in queue", "");

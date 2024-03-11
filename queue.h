@@ -9,6 +9,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <time.h>
 
 #include "harness.h"
 #include "list.h"
@@ -199,6 +200,8 @@ void q_reverseK(struct list_head *head, int k);
  * nothing.
  */
 void q_sort(struct list_head *head, bool descend);
+
+void q_timsort(struct list_head *head, bool descend);
 
 /**
  * q_ascend() - Remove every node which has a node with a strictly less
