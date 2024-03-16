@@ -141,11 +141,12 @@ int mcts(char *table, char player)
         if (root->children[i] && root->children[i]->n_visits > most_visits) {
             most_visits = root->children[i]->n_visits;
             best_node = root->children[i];
-        } else {
-            best_node = root;
         }
     }
-    int best_move = best_node->move;
-    free_node(root);
-    return best_move;
+    if (best_node) {
+        int best_move = best_node->move;
+        free_node(root);
+        return best_move;
+    }
+    return -1;
 }
