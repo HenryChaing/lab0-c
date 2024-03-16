@@ -80,13 +80,17 @@ int get_input(char player)
     return GET_INDEX(y, x);
 }
 
-void main_ttt()
+void main_ttt(int mode)
 {
     srand(time(NULL));
     char table[N_GRIDS];
     memset(table, ' ', N_GRIDS);
     char turn = 'X';
     char ai = 'O';
+
+    if (mode == 1) {
+        negamax_init();
+    }
 
     while (1) {
         char win = check_win(table);
@@ -99,27 +103,44 @@ void main_ttt()
             printf("%c won!\n", win);
             break;
         }
-
-        if (turn == ai) {
-            int move = mcts(table, ai);
-            if (move != -1) {
-                table[move] = ai;
+        if (mode == 0) {
+            if (turn == ai) {
+                int move = mcts(table, ai);
+                if (move != -1) {
+                    table[move] = ai;
+                    record_move(move);
+                }
+            } else {
+                draw_board(table);
+                int move;
+                while (1) {
+                    move = get_input(turn);
+                    if (table[move] == ' ') {
+                        break;
+                    }
+                    printf("Invalid operation: the position has been marked\n");
+                }
+                table[move] = turn;
                 record_move(move);
             }
-
         } else {
-            draw_board(table);
-            int move;
-            while (1) {
-                move = get_input(turn);
-                if (table[move] == ' ') {
-                    break;
+            if (turn == ai) {
+                draw_board(table);
+                int move = negamax_predict(table, ai).move;
+                if (move != -1) {
+                    table[move] = ai;
+                    record_move(move);
                 }
-                printf("Invalid operation: the position has been marked\n");
+            } else {
+                draw_board(table);
+                int move = negamax_predict(table, ai).move;
+                if (move != -1) {
+                    table[move] = turn;
+                    record_move(move);
+                }
             }
-            table[move] = turn;
-            record_move(move);
         }
+
         turn = turn == 'X' ? 'O' : 'X';
     }
     print_moves();

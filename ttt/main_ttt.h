@@ -10,8 +10,9 @@
 
 #include "game.h"
 #include "mcts.h"
+#include "negamax.h"
 
 void record_move(int move);
 void print_moves();
 int get_input(char player);
-void main_ttt();
+void main_ttt(int mode);

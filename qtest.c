@@ -76,6 +76,8 @@ static int string_length = MAXSTRING;
 
 static int descend = 0;
 
+static int computer = 0;
+
 #define MIN_RANDSTR_LEN 5
 #define MAX_RANDSTR_LEN 10
 static const char charset[] = "abcdefghijklmnopqrstuvwxyz";
@@ -1025,7 +1027,7 @@ static bool do_next(int argc, char *argv[])
 
 static bool do_ttt(int argc, char *argv[])
 {
-    main_ttt();
+    main_ttt(computer);
     return true;
 }
 
@@ -1080,6 +1082,8 @@ static void console_init()
               "Number of times allow queue operations to return false", NULL);
     add_param("descend", &descend,
               "Sort and merge queue in ascending/descending order", NULL);
+    add_param("tttchmod", &computer, "change ttt to player vs AI/AI vs AI mode",
+              NULL);
 }
 
 /* Signal handlers */
