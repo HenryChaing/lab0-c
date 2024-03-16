@@ -22,6 +22,7 @@
 #include "dudect/fixture.h"
 #include "list.h"
 #include "random.h"
+#include "ttt/main_ttt.h"
 
 /* Shannon entropy */
 extern double shannon_entropy(const uint8_t *input_data);
@@ -1022,6 +1023,12 @@ static bool do_next(int argc, char *argv[])
     return q_show(0);
 }
 
+static bool do_ttt(int argc, char *argv[])
+{
+    main_ttt();
+    return true;
+}
+
 static void console_init()
 {
     ADD_COMMAND(new, "Create new queue", "");
@@ -1064,6 +1071,7 @@ static void console_init()
                 "[K]");
     ADD_COMMAND(shuffle, "Use Fisher–Yates shuffle algo. shuffle the queue !!",
                 "");
+    ADD_COMMAND(ttt, "play tictactoe !!", "");
     add_param("length", &string_length, "Maximum length of displayed string",
               NULL);
     add_param("malloc", &fail_probability, "Malloc failure probability percent",
