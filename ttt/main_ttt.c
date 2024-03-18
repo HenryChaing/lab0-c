@@ -21,6 +21,7 @@ void print_moves()
     printf("\n");
 }
 
+
 int get_input(char player)
 {
     char *line = NULL;
@@ -80,6 +81,152 @@ int get_input(char player)
     return GET_INDEX(y, x);
 }
 
+
+struct task {
+    jmp_buf env;
+    struct list_head list;
+    char task_name[10];
+    char *table;
+    char turn;
+};
+
+struct arg {
+    char *task_name;
+    char *table;
+    char turn;
+};
+
+static LIST_HEAD(tasklist);
+static void (**tasks)(void *);
+static struct arg *args;
+static int ntasks;
+static jmp_buf sched;
+static struct task *cur_task;
+
+static void task_add(struct task *task)
+{
+    list_add_tail(&task->list, &tasklist);
+}
+
+static void task_switch()
+{
+    if (!list_empty(&tasklist)) {
+        struct task *t = list_first_entry(&tasklist, struct task, list);
+        list_del(&t->list);
+        cur_task = t;
+        longjmp(t->env, 1);
+    }
+}
+
+void schedule(void)
+{
+    static int i;
+    i = 0;
+    setjmp(sched);
+    while (ntasks-- > 0) {
+        struct arg arg = args[i];
+        tasks[i++](&arg);
+        printf("Never reached\n");
+    }
+    task_switch();
+}
+
+
+/*negamax*/
+void task0(void *arg)
+{
+    struct task *task = malloc(sizeof(struct task));
+    strncpy(task->task_name, ((struct arg *) arg)->task_name, 6);
+    task->table = ((struct arg *) arg)->table;
+    task->turn = ((struct arg *) arg)->turn;
+    INIT_LIST_HEAD(&task->list);
+
+    printf("%s: n = %c\n", task->task_name, task->turn);
+
+    if (setjmp(task->env) == 0) {
+        task_add(task);
+        longjmp(sched, 1);
+    }
+    while (1) {
+        task = cur_task;
+
+        if (setjmp(task->env) == 0) {
+            char win = check_win(task->table);
+            if (win == 'D') {
+                draw_board(task->table);
+                printf("It is a draw!\n");
+                break;
+            } else if (win != ' ') {
+                draw_board(task->table);
+                printf("%c won!\n", win);
+                break;
+            }
+
+            draw_board(task->table);
+            int move = negamax_predict(task->table, task->turn).move;
+            if (move != -1) {
+                task->table[move] = task->turn;
+                record_move(move);
+            }
+
+            task_add(task);
+            printf("%s: n = %c,  continue...\n", task->task_name, task->turn);
+            task_switch();
+        }
+    }
+
+    printf("%s: complete\n", task->task_name);
+    longjmp(sched, 1);
+}
+
+/*mcts*/
+void task1(void *arg)
+{
+    struct task *task = malloc(sizeof(struct task));
+    strncpy(task->task_name, ((struct arg *) arg)->task_name, 6);
+    task->table = ((struct arg *) arg)->table;
+    task->turn = ((struct arg *) arg)->turn;
+    INIT_LIST_HEAD(&task->list);
+
+    printf("%s: n = %c\n", task->task_name, task->turn);
+
+    if (setjmp(task->env) == 0) {
+        task_add(task);
+        longjmp(sched, 1);
+    }
+    while (1) {
+        task = cur_task;
+
+        if (setjmp(task->env) == 0) {
+            char win = check_win(task->table);
+            if (win == 'D') {
+                draw_board(task->table);
+                printf("It is a draw!\n");
+                break;
+            } else if (win != ' ') {
+                draw_board(task->table);
+                printf("%c won!\n", win);
+                break;
+            }
+
+            draw_board(task->table);
+            int move = mcts(task->table, task->turn);
+            if (move != -1) {
+                task->table[move] = task->turn;
+                record_move(move);
+            }
+
+            task_add(task);
+            printf("%s: n = %c,  continue...\n", task->task_name, task->turn);
+            task_switch();
+        }
+    }
+
+    printf("%s: complete\n", task->task_name);
+    longjmp(sched, 1);
+}
+
+
 void main_ttt(int mode)
 {
     srand(time(NULL));
@@ -88,7 +235,12 @@ void main_ttt(int mode)
     char turn = 'X';
     char ai = 'O';
 
-    if (mode == 1) {
+    void (*registered_task[])(void *) = {task0, task1};
+    struct arg arg0 = {.table = table, .turn = 'X', .task_name = "Task 0"};
+    struct arg arg1 = {.table = table, .turn = 'O', .task_name = "Task 1"};
+    struct arg registered_arg[] = {arg0, arg1};
+
+    if (mode > 0) {
         negamax_init();
     }
 
@@ -123,7 +275,7 @@ void main_ttt(int mode)
                 table[move] = turn;
                 record_move(move);
             }
-        } else {
+        } else if (mode == 1) {
             if (turn == ai) {
                 draw_board(table);
                 int move = negamax_predict(table, ai).move;
@@ -139,6 +291,12 @@ void main_ttt(int mode)
                     record_move(move);
                 }
             }
+        } else {
+            tasks = registered_task;
+            args = registered_arg;
+            ntasks = ARRAY_SIZE(registered_task);
+
+            schedule();
         }
 
         turn = turn == 'X' ? 'O' : 'X';
