@@ -2,6 +2,8 @@
 
 int move_record[N_GRIDS];
 int move_count = 0;
+int move_record_arr[50][N_GRIDS];
+int record_arr_len = 0;
 
 void record_move(int move)
 {
@@ -21,6 +23,20 @@ void print_moves()
     printf("\n");
 }
 
+void print_all_moves()
+{
+    for (int i = 0; i < record_arr_len; i++) {
+        printf("Battle %d, Moves: ", i + 1);
+        for (int j = 1; j <= move_record_arr[i][0]; j++) {
+            printf("%c%d", 'A' + GET_COL(move_record_arr[i][j]),
+                   1 + GET_ROW(move_record_arr[i][j]));
+            if (j < move_record_arr[i][0]) {
+                printf(" -> ");
+            }
+        }
+        printf("\n");
+    }
+}
 
 int get_input(char player)
 {
@@ -226,6 +242,51 @@ void task1(void *arg)
     longjmp(sched, 1);
 }
 
+/*keyborad_handler*/
+void task2(void *arg)
+{
+    struct task *task = malloc(sizeof(struct task));
+    strncpy(task->task_name, ((struct arg *) arg)->task_name, 6);
+    task->table = ((struct arg *) arg)->table;
+    // task->turn = ((struct arg *) arg)->turn;
+    INIT_LIST_HEAD(&task->list);
+
+    printf("%s: n \n", task->task_name);
+
+    if (setjmp(task->env) == 0) {
+        task_add(task);
+        longjmp(sched, 1);
+    }
+    while (1) {
+        task = cur_task;
+
+        if (setjmp(task->env) == 0) {
+            char win = check_win(task->table);
+            if (win == 'D') {
+                break;
+            }
+
+            if (win != ' ') {
+                break;
+            }
+
+            int finish = process_key();
+
+            if (finish == 1) {
+                print_all_moves();
+                exit(0);
+            }
+
+            task_add(task);
+            printf("%s: n ,  continue...\n", task->task_name);
+            task_switch();
+        }
+    }
+
+    printf("%s: complete\n", task->task_name);
+    longjmp(sched, 1);
+}
+
 
 void main_ttt(int mode)
 {
@@ -235,10 +296,11 @@ void main_ttt(int mode)
     char turn = 'X';
     char ai = 'O';
 
-    void (*registered_task[])(void *) = {task0, task1};
+    void (*registered_task[])(void *) = {task0, task1, task2};
     struct arg arg0 = {.table = table, .turn = 'X', .task_name = "Task 0"};
     struct arg arg1 = {.table = table, .turn = 'O', .task_name = "Task 1"};
-    struct arg registered_arg[] = {arg0, arg1};
+    struct arg arg2 = {.table = table, .task_name = "Task 2"};
+    struct arg registered_arg[] = {arg0, arg1, arg2};
 
     if (mode > 0) {
         negamax_init();
@@ -297,6 +359,18 @@ void main_ttt(int mode)
             ntasks = ARRAY_SIZE(registered_task);
 
             schedule();
+
+            for (int i = 0; i < N_GRIDS; i++) {
+                table[i] = ' ';
+            }
+
+            for (int i = 0; i < move_count; i++) {
+                move_record_arr[record_arr_len][i + 1] = move_record[i];
+                move_record[i] = 0;
+            }
+            move_record_arr[record_arr_len][0] = move_count;
+            move_count = 0;
+            record_arr_len++;
         }
 
         turn = turn == 'X' ? 'O' : 'X';
