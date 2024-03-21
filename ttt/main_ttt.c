@@ -340,14 +340,14 @@ void main_ttt(int mode)
         } else if (mode == 1) {
             if (turn == ai) {
                 draw_board(table);
-                int move = negamax_predict(table, ai).move;
+                int move = mcts(table, ai);
                 if (move != -1) {
                     table[move] = ai;
                     record_move(move);
                 }
             } else {
                 draw_board(table);
-                int move = negamax_predict(table, ai).move;
+                int move = negamax_predict(table, turn).move;
                 if (move != -1) {
                     table[move] = turn;
                     record_move(move);
