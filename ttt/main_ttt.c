@@ -353,7 +353,7 @@ void main_ttt(int mode)
                     record_move(move);
                 }
             }
-        } else {
+        } else if (mode == 2) {
             tasks = registered_task;
             args = registered_arg;
             ntasks = ARRAY_SIZE(registered_task);
