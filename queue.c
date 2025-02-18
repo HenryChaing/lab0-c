@@ -494,18 +494,82 @@ bool q_shuffle(struct list_head *head)
     return true;
 }
 
+void merge_2_queue(list_head *a_queue, list_head *b_queue, bool descend)
+{
+    list_head *a_list_head = a_queue;
+    list_head *b_list_head = b_queue;
+    list_head *a_list = a_queue->next;
+    list_head *b_list = b_queue->next;
+    list_head **ptr = &a_list_head;
+    char remove_value[10];
+
+    while (a_list != a_list_head && b_list != b_list_head) {
+        element_t *a_node = container_of(a_list, element_t, list);
+        element_t *b_node = container_of(b_list, element_t, list);
+
+        printf("(%s,%s)\n", a_node->value, b_node->value);
+        if (!compare(a_list, b_list)) {
+            a_list = a_list->next;
+            list_head *rm_list =
+                &(q_remove_head(a_list->prev->prev, remove_value, 10)->list);
+            rm_list->prev = (*ptr);
+            rm_list->next = (*ptr)->next;
+            (*ptr)->next->prev = rm_list;
+            (*ptr)->next = rm_list;
+            ptr = &(*ptr)->next;
+
+        } else {
+            b_list = b_list->next;
+            list_head *rm_list =
+                &(q_remove_head(b_list->prev->prev, remove_value, 10)->list);
+            rm_list->prev = (*ptr);
+            rm_list->next = (*ptr)->next;
+            (*ptr)->next->prev = rm_list;
+            (*ptr)->next = rm_list;
+            ptr = &(*ptr)->next;
+        }
+    }
+
+
+    while (a_list != a_list_head) {
+        a_list = a_list->next;
+        list_head *rm_list =
+            &(q_remove_head(a_list->prev->prev, remove_value, 10)->list);
+        rm_list->prev = (*ptr);
+        rm_list->next = (*ptr)->next;
+        (*ptr)->next->prev = rm_list;
+        (*ptr)->next = rm_list;
+        ptr = &(*ptr)->next;
+    }
+
+    while (b_list != b_list_head) {
+        b_list = b_list->next;
+        list_head *rm_list =
+            &(q_remove_head(b_list->prev->prev, remove_value, 10)->list);
+        rm_list->prev = (*ptr);
+        rm_list->next = (*ptr)->next;
+        (*ptr)->next->prev = rm_list;
+        (*ptr)->next = rm_list;
+        ptr = &(*ptr)->next;
+    }
+}
+
 /* Merge all the queues into one sorted queue, which is in ascending/descending
  * order */
 int q_merge(struct list_head *head, bool descend)
 {
-    list_head *q = container_of(head->next, queue_contex_t, chain)->q;
-    list_head *chain_context = head->next->next;
+    list_head *q =
+        container_of(head->next, queue_contex_t, chain)->q;  // first list
+    list_head *chain_context = head->next->next;             // second list
 
     while (chain_context != head) {
         list_head *merge_list =
             container_of(chain_context, queue_contex_t, chain)->q;
-        q = my_merge(q, merge_list, descend);
+        merge_2_queue(q, merge_list, descend);
         chain_context = chain_context->next;
+    }
+    if (descend) {
+        q_reverse(q);
     }
     // https://leetcode.com/problems/merge-k-sorted-lists/
     return q_size(q);
