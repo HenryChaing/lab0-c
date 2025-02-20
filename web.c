@@ -5,10 +5,12 @@
 #include <arpa/inet.h> /* inet_ntoa */
 #include <errno.h>
 #include <netinet/tcp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #define LISTENQ 1024 /* second argument to listen() */
@@ -256,8 +258,31 @@ int web_eventmux(char *buf)
         int web_connfd =
             accept(server_fd, (struct sockaddr *) &clientaddr, &clientlen);
 
+
+        fd_set listenset_2;
+        FD_ZERO(&listenset_2);
+        FD_SET(STDIN_FILENO, &listenset_2);
+        FD_SET(web_connfd, &listenset_2);
+        max_fd = STDIN_FILENO > web_connfd ? STDIN_FILENO : web_connfd;
+        int result = select(max_fd + 1, &listenset_2, NULL, NULL, NULL);
+        if (result < 0)
+            return -1;
+        if (FD_ISSET(STDIN_FILENO, &listenset_2)) {
+            FD_CLR(STDIN_FILENO, &listenset_2);
+            return 0;
+        } else {
+            FD_CLR(web_connfd, &listenset_2);
+        }
+
         char *p = web_recv(web_connfd, &clientaddr);
-        char *buffer = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
+        char *buffer =
+            "HTTP/1.1 200 OK\r\n%s%s%s%s%s%s"
+            "Content-Type: text/html\r\n\r\n"
+            "<html><head><style>"
+            "body{font-family: monospace; font-size: 13px;}"
+            "td {padding: 1.5px 6px;}"
+            "</style><link rel=\"shortcut icon\" href=\"#\">"
+            "</head><body><table>\n";
         web_send(web_connfd, buffer);
         strncpy(buf, p, strlen(p) + 1);
         free(p);
