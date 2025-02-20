@@ -953,9 +953,15 @@ static int line_edit(int stdin_fd,
                 return result;
         }
 
-        nread = read(l.ifd, &c, 1);
-        if (nread <= 0)
-            return l.len;
+        fd_set set;
+        FD_ZERO(&set);
+        FD_SET(stdin_fd, &set);
+        select(stdin_fd + 1, &set, NULL, NULL, NULL);
+        if (FD_ISSET(stdin_fd, &set)) {
+            nread = read(l.ifd, &c, 1);
+            if (nread <= 0)
+                return l.len;
+        }
 
         /* Only autocomplete when the callback is set. It returns < 0 when
          * there was an error reading from fd. Otherwise it will return the

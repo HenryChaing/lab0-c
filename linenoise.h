@@ -44,6 +44,7 @@ extern "C" {
 #endif
 
 #include <stddef.h>
+#include <sys/select.h>
 
 typedef struct {
     size_t len;
